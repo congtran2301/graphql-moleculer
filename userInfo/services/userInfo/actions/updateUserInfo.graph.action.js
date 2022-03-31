@@ -5,6 +5,8 @@ module.exports = async function (ctx) {
 	const infoToUpdate = ctx.params.input;
 	const { credentials } = ctx.meta.auth;
 
+	if (!credentials) throw new MoleculerClientError('Not authorized', 401);
+
 	const user = await ctx.call('UserModel.findOne', [
 		{ email: credentials.email }
 	]);
