@@ -1,0 +1,75 @@
+{
+  "name": "wallet-miniprogram",
+  "version": "1.0.0",
+  "description": "My Moleculer-based microservices project",
+  "scripts": {
+    "dev": "moleculer-runner --repl --hot --envfile env/dev/.env",
+    "start": "moleculer-runner --envfile env/dev/.env",
+    "cli": "moleculer connect NATS",
+    "ci": "jest --watch",
+    "coverage": "jest --coverage",
+    "test": "jest",
+    "lint": "eslint services",
+    "dc:up": "docker-compose up --build -d",
+    "dc:logs": "docker-compose logs -f",
+    "dc:down": "docker-compose down"
+  },
+  "keywords": [
+    "microservices",
+    "moleculer"
+  ],
+  "author": "",
+  "devDependencies": {
+    "eslint": "^7.23.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-google": "^0.13.0",
+    "eslint-config-standard": "^13.0.1",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-node": "^9.2.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "jest": "^26.6.3",
+    "jest-cli": "^26.6.3",
+    "moleculer-docgen": "^0.3.0",
+    "moleculer-repl": "^0.6.4"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bcryptjs": "^2.4.3",
+    "crypto-js": "^4.1.1",
+    "decimal.js": "^10.3.1",
+    "dotenv": "^10.0.0",
+    "ioredis": "^4.17.3",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "md5": "^2.3.0",
+    "moleculer": "^0.14.13",
+    "moleculer-apollo-server": "^0.3.6",
+    "moleculer-db": "^0.8.14",
+    "moleculer-db-adapter-mongoose": "^0.8.10",
+    "moleculer-db-adapter-mongoose-action": "^1.0.3",
+    "moleculer-mail": "^1.2.5",
+    "moment": "^2.29.1",
+    "mongoose": "^5.12.13",
+    "mongoose-auto-increment": "^5.0.1",
+    "nanoid": "^3.1.23",
+    "nanoid-dictionary": "^4.3.0",
+    "nats": "^1.4.12",
+    "node-rsa": "^1.1.1",
+    "numeral": "^2.0.6",
+    "randomstring": "^1.2.2",
+    "redlock": "^4.2.0",
+    "shortid": "^2.2.16"
+  },
+  "engines": {
+    "node": ">= 10.x.x"
+  },
+  "jest": {
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "rootDir": "./services",
+    "roots": [
+      "../test"
+    ]
+  }
+}

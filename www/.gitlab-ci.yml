@@ -1,0 +1,98 @@
+variables:
+  GIT_STRATEGY: clone
+  DEV_NAMESPACE: "api-pg"
+  SBX_NAMESPACE: "paymentgateway"
+  PROD_NAMESPACE: "api-pg"
+  REGISTRY_GROUP: "pg-microservices"
+
+
+.rancher_deploy: &rancher_deploy
+  - export IMAGE_TAG=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}
+  - if [[ -z "$IMAGE_TAG" ]]; then echo "Failed to get IMAGE_TAG" && exit 1; fi
+  - if [[ -z "$RANCHER_URL" ]] || [[ -z "$RANCHER_TOKEN" ]] || [[ -z "$RANCHER_CONTEXT" ]]; then echo "Please set RANCHER_URL, RANCHER_TOKEN, RANCHER_CONTEXT in group CI/CD setting" && exit 1; fi
+  - rancher login --token $RANCHER_TOKEN --context $RANCHER_CONTEXT $RANCHER_URL --skip-verify
+  - rancher kubectl get namespace
+  - rancher kubectl -n "$RANCHER_NAMESPACE" set image deployment/$CI_PROJECT_NAME $CI_PROJECT_NAME=$REGISTRY_URL$REGISTRY_GROUP/$CI_PROJECT_NAME:$IMAGE_TAG 
+  - rancher kubectl --namespace="$RANCHER_NAMESPACE" rollout status deployment "$CI_PROJECT_NAME"
+
+stages:
+  - build_local
+  - build_online
+  - deploy_dev
+  - deploy_sbx
+  - deploy_prod
+
+build_local:
+  timeout: 300s
+  stage: build_local
+  script:
+    - echo "$CI_DEV_REGISTRY_PASSWORD" | docker login -u "$CI_DEV_REGISTRY_USER" "$CI_DEV_REGISTRY" --password-stdin
+    - docker build -t $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA .
+    - docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA $CI_DEV_REGISTRY$REGISTRY_GROUP/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA && docker push $CI_DEV_REGISTRY$REGISTRY_GROUP/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+  only:
+    - master
+  tags:
+    - dev
+  after_script:
+    - rm -rf "$BUILD_DIR"
+
+build_online:
+  timeout: 300s
+  stage: build_online
+  script:
+    - echo "$CI_PROD_REGISTRY_PASSWORD" | docker login -u "$CI_PROD_REGISTRY_USER" "$CI_PROD_REGISTRY" --password-stdin
+    - docker build -t $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA .
+    - docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA $CI_PROD_REGISTRY$REGISTRY_GROUP/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA && docker push $CI_PROD_REGISTRY$REGISTRY_GROUP/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+  only:
+    - release_sbx
+    - release_production
+  tags:
+    - production
+  after_script:
+    - rm -rf "$BUILD_DIR"
+
+deploy_dev:
+  timeout: 60s
+  stage: deploy_dev
+  variables:
+    GIT_STRATEGY: none
+    REGISTRY_URL: "${CI_DEV_REGISTRY}"
+    RANCHER_CONTEXT: "${RANCHER_DEV_CONTEXT}"
+    RANCHER_NAMESPACE: $DEV_NAMESPACE
+  tags:
+    - dev
+  only:
+    - master
+  script:
+    - *rancher_deploy
+  
+deploy_sbx:
+  timeout: 60s
+  stage: deploy_sbx
+  variables:
+    GIT_STRATEGY: none
+    REGISTRY_URL: "${CI_PROD_REGISTRY}"
+    RANCHER_CONTEXT: "${RANCHER_SBX_CONTEXT}"
+    RANCHER_NAMESPACE: $SBX_NAMESPACE
+  tags:
+    - dev
+  only:
+    - release_sbx
+  script:
+    - *rancher_deploy
+
+deploy_prod:
+  timeout: 60s
+  stage: deploy_prod
+  variables:
+    GIT_STRATEGY: none
+    REGISTRY_URL: "${CI_PROD_REGISTRY}"
+    RANCHER_CONTEXT: "${RANCHER_PROD_CONTEXT}"
+    RANCHER_NAMESPACE: $PROD_NAMESPACE
+  tags:
+    - dev
+  when: manual
+  only:
+    - release_production
+  script:
+    - *rancher_deploy    

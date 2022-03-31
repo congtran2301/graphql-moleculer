@@ -1,0 +1,10 @@
+{
+	"hello": "Xin chào",
+	"orderNotFound": "Không tìm thấy đơn hàng",
+	"invalidSignature": "Dữ liệu không hợp lệ",
+	"paymentFail": "Thanh toán thất bại",
+	"orderAlreadyPaid": "Đơn hàng đã được thanh toán",
+	"orderAlreadyCanceled": "Đơn hàng đã bị hủy",
+	"fromDateAfterToDate": "Ngày bắt đầu phải nhỏ hơn ngày kết thúc",
+	"walletHistoryNotFound": "Không tìm thấy lịch sử giao dịch"
+}
